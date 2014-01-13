@@ -8,7 +8,7 @@ http://www.litecoinway.com/
 // Global definitions
 if (!defined('BWWC_PLUGIN_NAME'))
   {
-  define('BWWC_VERSION',           '2.12');
+  define('BWWC_VERSION',           '2.13');
 
   //-----------------------------------------------
   define('BWWC_EDITION',           'Standard');    
