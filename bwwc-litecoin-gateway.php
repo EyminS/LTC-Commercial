@@ -152,7 +152,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 	   		$currency_code            = get_woocommerce_currency();
 	   		$supported_currencies_arr = BWWC__get_settings ('supported_currencies_arr');
 
-		   	if ($currency_code != 'BTC' && !@in_array($currency_code, $supported_currencies_arr))
+		   	if ($currency_code != 'LTC' && !@in_array($currency_code, $supported_currencies_arr))
 		   	{
 			    $reason_message = __("Store currency is set to unsupported value", 'woocommerce') . "('{$currency_code}'). " . __("Valid currencies: ", 'woocommerce') . implode ($supported_currencies_arr, ", ");
 	    		if ($ret_reason_message !== NULL)
@@ -182,13 +182,13 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 	    	//-----------------------------------
 	    	// Assemble currency ticker.
 	   		$store_currency_code = get_woocommerce_currency();
-	   		if ($store_currency_code == 'BTC')
+	   		if ($store_currency_code == 'LTC')
 	   			$currency_code = 'USD';
 	   		else
 	   			$currency_code = $store_currency_code;
 
 				$currency_ticker = BWWC__get_exchange_rate_per_litecoin ($currency_code, 'max', true);
-				$api_url = "https://mtgox.com/api/1/BTC{$currency_code}/ticker";
+				$api_url = "https://mtgox.com/api/1/LTC{$currency_code}/ticker";
 	    	//-----------------------------------
 
 	    	//-----------------------------------
@@ -200,7 +200,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
   </tr>
   <tr class="bpit-table-row">
     <td style="vertical-align:middle;" class="bpit-td-name bpit-td-name-amount">
-      ' . __('Amount', 'woocommerce') . ' (<strong>BTC</strong>):
+      ' . __('Amount', 'woocommerce') . ' (<strong>LTC</strong>):
     </td>
     <td class="bpit-td-value bpit-td-value-amount">
       <div style="border:1px solid #FCCA09;padding:2px 6px;margin:2px;background-color:#FCF8E3;border-radius:4px;color:#CC0000;font-weight: bold;font-size: 120%;">
@@ -271,7 +271,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 								'options' => array(
 									''  => __( 'Please choose your provider', 'woocommerce' ),
 									'electrum-wallet'  => __( 'Your own Electrum wallet', 'woocommerce' ),
-									'litecoin.org' => __( 'Blockchain.info API', 'woocommerce' ),
+									'litecoin.org' => __( 'litecoin.org API', 'woocommerce' ),
 									),
 								'default' => '',
 								'description' => $this->service_provider?__("Please select your Litecoin service provider and press [Save changes]. Then fill-in necessary details and press [Save changes] again.<br />Recommended setting: <b>Your own Electrum wallet</b>", 'woocommerce'):__("Recommended setting: 'Your own Electrum wallet'. <a href='http://electrum.org/' target='_blank'>Free download of Electrum wallet here</a>.", 'woocommerce'),
@@ -291,7 +291,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 								'type' => 'text',
 								'css'     => $this->service_provider!='litecoin.org'?'display:none;':'',
 								'disabled' => $this->service_provider!='litecoin.org'?true:false,
-								'description' => $this->service_provider!='litecoin.org'?__('Available when Litecoin service provider is set to: <b>Blockchain.info</b>', 'woocommerce'):__( 'Your own litecoin address (such as: 1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2) - where you would like the payment to be sent. When customer sends you payment for the product - it will be automatically forwarded to this address by litecoin.org APIs.', 'woocommerce' ),
+								'description' => $this->service_provider!='litecoin.org'?__('Available when Litecoin service provider is set to: <b>litecoin.org</b>', 'woocommerce'):__( 'Your own litecoin address (such as: 1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2) - where you would like the payment to be sent. When customer sends you payment for the product - it will be automatically forwarded to this address by litecoin.org APIs.', 'woocommerce' ),
 								'default' => '',
 							),
 
@@ -305,21 +305,21 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 				'exchange_rate_type' => array(
 								'title' => __('Exchange rate calculation type', 'woocommerce' ),
 								'type' => 'select',
-								'disabled' => $store_currency_code=='BTC'?true:false,
+								'disabled' => $store_currency_code=='LTC'?true:false,
 								'options' => array(
 									'avg'  => __( 'Average', 'woocommerce' ),
 									'vwap' => __( 'Weighted Average', 'woocommerce' ),
 									'max'  => __( 'Maximum', 'woocommerce' ),
 									),
 								'default' => 'vwap',
-								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
+								'description' => ($store_currency_code=='LTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
 									__('<b>Average</b>: <a href="https://mtgox.com/" target="_blank">MtGox</a> 24 hour average exchange rate<br /><b>Weighted Average</b> (recommended): MtGox <a href="http://en.wikipedia.org/wiki/VWAP" target="_blank">Weighted average</a> rate<br /><b>Maximum</b>: maximum exchange rate of all indicators (least favorable for customer). Calculated as: MIN (Average, Weighted Average, Sell price)') . " (<a href='{$api_url}' target='_blank'><b>rates API</b></a>)" . '<br />' . $currency_ticker,
 							),
 				'exchange_multiplier' => array(
 								'title' => __('Exchange rate multiplier', 'woocommerce' ),
 								'type' => 'text',
-								'disabled' => $store_currency_code=='BTC'?true:false,
-								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
+								'disabled' => $store_currency_code=='LTC'?true:false,
+								'description' => ($store_currency_code=='LTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
 									__('Extra multiplier to apply to convert store default currency to litecoin price. <br />Example: <b>1.05</b> - will add extra 5% to the total price in litecoin. May be useful to compensate merchant\'s loss to fees when converting litecoin to local currency, or to encourage customer to use litecoin for purchases (by setting multiplier to < 1.00 values).', 'woocommerce' ),
 								'default' => '1.00',
 							),
@@ -441,13 +441,13 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 			if (!$exchange_rate)
 			{
 				$msg = 'ERROR: Cannot determine Litecoin exchange rate. Possible issues: store server does not allow outgoing connections, exchange rate servers are blocking incoming connections or down. ' .
-					   'You may avoid that by setting store currency directly to Litecoin(BTC)';
+					   'You may avoid that by setting store currency directly to Litecoin(LTC)';
       			BWWC__log_event (__FILE__, __LINE__, $msg);
       			exit ('<h2 style="color:red;">' . $msg . '</h2>');
 			}
 
 			$order_total_in_ltc   = ($order->get_total() / $exchange_rate);
-			if (get_woocommerce_currency() != 'BTC')
+			if (get_woocommerce_currency() != 'LTC')
 				// Apply exchange rate multiplier only for stores with non-litecoin default currency.
 				$order_total_in_ltc = $order_total_in_ltc * $this->exchange_multiplier;
 
@@ -696,7 +696,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 				if ($confirmations >= $this->confirmations)
 				{
 
-					// The value of the payment received in satoshi (not including fees). Divide by 100000000 to get the value in BTC.
+					// The value of the payment received in satoshi (not including fees). Divide by 100000000 to get the value in LTC.
 					$value_in_ltc 		= @$_GET['value'] / 100000000;
 					$txn_hash 			= @$_GET['transaction_hash'];
 					$txn_confirmations 	= @$_GET['confirmations'];
@@ -731,7 +731,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 					}
 					else
 					{
-     				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment received (for BTC {$value_in_ltc}), but not enough yet to cover the required total. Will be waiting for more. Litecoins: now/total received/needed = {$value_in_ltc}/{$paid_total_so_far}/{$order_total_in_ltc}");
+     				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment received (for LTC {$value_in_ltc}), but not enough yet to cover the required total. Will be waiting for more. Litecoins: now/total received/needed = {$value_in_ltc}/{$paid_total_so_far}/{$order_total_in_ltc}");
 					}
 
 			    // Reply '*ok*' so no more notifications are sent
@@ -741,7 +741,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 				{
 					// Number of confirmations are not there yet... Skip it this time ...
 			    // Don't print *ok* so the notification resent again on next confirmation
-   				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment notification received (for BTC {$value_in_ltc}), but number of confirmations is not enough yet. Confirmations received/required: {$confirmations}/{$this->confirmations}");
+   				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment notification received (for LTC {$value_in_ltc}), but number of confirmations is not enough yet. Confirmations received/required: {$confirmations}/{$this->confirmations}");
 			    exit();
 				}
 			}
@@ -805,7 +805,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 	//=======================================================================
 	function BWWC__add_ltc_currency($currencies)
 	{
-	     $currencies['BTC'] = __( 'Litecoin (฿)', 'woocommerce' );
+	     $currencies['LTC'] = __( 'Litecoin (LTC)', 'woocommerce' );
 	     return $currencies;
 	}
 	//=======================================================================
@@ -815,9 +815,9 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
 	{
 		switch( $currency )
 		{
-			case 'BTC':
-				$currency_symbol = '฿';
-				break;
+			case 'LTC':
+				$currency_symbol = 'LTC';
+			break;
 		}
 
 		return $currency_symbol;

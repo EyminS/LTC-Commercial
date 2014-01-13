@@ -127,7 +127,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 
           if ($balance_info_array['balance'] < $last_order_info['order_total'])
           {
-            BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: balance at address: '{$row_for_balance_check['ltc_address']}' (BTC '{$balance_info_array['balance']}') is not yet sufficient to complete it's order (order ID = '{$last_order_info['order_id']}'). Total required: '{$last_order_info['order_total']}'. Will wait for more funds to arrive...");
+            BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: balance at address: '{$row_for_balance_check['ltc_address']}' (LTC '{$balance_info_array['balance']}') is not yet sufficient to complete it's order (order ID = '{$last_order_info['order_id']}'). Total required: '{$last_order_info['order_total']}'. Will wait for more funds to arrive...");
           }
         }
 
@@ -159,7 +159,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 		      */
 
 	        // Last order was fully paid! Complete it...
-	        BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Full payment for order ID '{$last_order_info['order_id']}' detected at address: '{$row_for_balance_check['ltc_address']}' (BTC '{$balance_info_array['balance']}'). Total was required for this order: '{$last_order_info['order_total']}'. Processing order ...");
+	        BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Full payment for order ID '{$last_order_info['order_id']}' detected at address: '{$row_for_balance_check['ltc_address']}' (LTC '{$balance_info_array['balance']}'). Total was required for this order: '{$last_order_info['order_total']}'. Processing order ...");
 
 	        // Update order' meta info
 	        $address_meta['orders'][0]['paid'] = true;

@@ -453,7 +453,7 @@ function BWWC__getreceivedbyaddress_info ($ltc_address, $required_confirmations=
   {
     $ret_info_array = array (
       'result'                      => 'error',
-      'message'                     => "Blockchains API failure. Erratic replies:\n" . $explorer_litecoin_net_failure_reply . "\n" . $liteapi_info_failure_reply,
+      'message'                     => "LitecoinAPI API failure. Erratic replies:\n" . $explorer_litecoin_net_failure_reply . "\n" . $liteapi_info_failure_reply,
       'host_reply_raw'              => $explorer_litecoin_net_failure_reply . "\n" . $liteapi_info_failure_reply,
       'balance'                     => false,
       );
@@ -514,7 +514,7 @@ function BWWC__generate_temporary_litecoin_address__liteapi_info ($forwarding_li
 
    $ret_info_array = array (
       'result'                      => 'error',
-      'message'                     => 'Blockchain.info API failure: ' . $result,
+      'message'                     => 'litecoin.org API failure: ' . $result,
       'host_reply_raw'              => $result,
       'generated_litecoin_address'   => false,
       );
@@ -538,7 +538,7 @@ function BWWC__generate_temporary_litecoin_address__liteapi_info ($forwarding_li
 
 function BWWC__get_exchange_rate_per_litecoin ($currency_code, $rate_type = 'vwap', $get_ticker_string=false)
 {
-   if ($currency_code == 'BTC')
+   if ($currency_code == 'LTC')
       return "1.00";   // 1:1
 
    if (!@in_array($currency_code, BWWC__get_settings ('supported_currencies_arr')))
