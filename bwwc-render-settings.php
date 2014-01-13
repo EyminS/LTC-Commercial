@@ -1,7 +1,7 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 // Include everything
@@ -9,7 +9,7 @@ include (dirname(__FILE__) . '/bwwc-include-all.php');
 
 //===========================================================================
 function BWWC__render_general_settings_page ()          { BWWC__render_settings_page   ('general'); }
-function BWWC__render_blockchain_info_settings_page ()  { BWWC__render_settings_page   ('blockchain.info'); }
+function BWWC__render_liteapi_org_settings_page ()  { BWWC__render_settings_page   ('liteapi.org'); }
 //===========================================================================
 
 //===========================================================================
@@ -54,7 +54,7 @@ HHHH;
    switch ($menu_page_name)
       {
       case 'general'            :   BWWC__render_general_settings_page_html();          break;
-      case 'blockchain.info'    :   BWWC__render_blockchain_info_settings_page_html();  break;
+      case 'liteapi.org'    :   BWWC__render_liteapi_org_settings_page_html();  break;
       default                   :   break;
       }
 
@@ -85,7 +85,7 @@ function BWWC__render_general_settings_page_html ()
                 <th scope="row">Enable soft (wordpress) cron job:</th>
                 <td><input type="hidden" name="enable_soft_cron_job" value="0" /><input type="checkbox" name="enable_soft_cron_job" value="1" <?php if ($bwwc_settings['enable_soft_cron_job']) echo 'checked="checked"'; ?> /></td>
                 <td>
-                  If checked - Wordpress-driven cron job will take care of all bitcoin payment processing tasks, like checking if payments are made and automatically completing the orders.
+                  If checked - Wordpress-driven cron job will take care of all litecoin payment processing tasks, like checking if payments are made and automatically completing the orders.
                   <br />Alternatively (better option) is to enable "hard" cron job driven by the website hosting system (usually via CPanel). "Hard" cron jobs are not supported by all hosting services.
                   <br /><b>Note:</b> you will need to deactivate/reactivate plugin after changing this setting for it to have effect.
                 </td>
@@ -104,8 +104,8 @@ function BWWC__render_general_settings_page_html ()
 //===========================================================================
 
 //===========================================================================
-function BWWC__render_blockchain_info_settings_page_html ()
+function BWWC__render_liteapi_org_settings_page_html ()
 {
-    echo "blockchain.info settings...";
+    echo "liteapi.org settings...";
 }
 //===========================================================================

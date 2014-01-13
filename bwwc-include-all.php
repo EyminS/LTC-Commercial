@@ -1,7 +1,7 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 //---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ if (!defined('BWWC_PLUGIN_NAME'))
 
   //-----------------------------------------------
   define('BWWC_SETTINGS_NAME',     'BWWC-Settings');
-  define('BWWC_PLUGIN_NAME',       'Bitcoin Payments for WooCommerce');   
+  define('BWWC_PLUGIN_NAME',       'Litecoin Payments for WooCommerce');   
 
 
   // i18n plugin domain for language files
@@ -60,6 +60,6 @@ require_once (dirname(__FILE__) . '/bwwc-mpkgen.php');
 require_once (dirname(__FILE__) . '/bwwc-utils.php');
 require_once (dirname(__FILE__) . '/bwwc-admin.php');
 require_once (dirname(__FILE__) . '/bwwc-render-settings.php');
-require_once (dirname(__FILE__) . '/bwwc-bitcoin-gateway.php');
+require_once (dirname(__FILE__) . '/bwwc-litecoin-gateway.php');
 
 ?>

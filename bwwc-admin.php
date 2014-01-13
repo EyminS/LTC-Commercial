@@ -1,7 +1,7 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 // Include everything
@@ -24,10 +24,10 @@ $g_BWWC__config_defaults = array (
    'database_schema_version'              =>  1.0,
    'assigned_address_expires_in_mins'     =>  12*60,  // 12 hours to pay for order and recieve necessary number of confirmations.
    'funds_received_value_expires_in_mins' =>  '10',
-   'starting_index_for_new_btc_addresses' =>  '2',    // Generate new addresses for the wallet starting from this index.
-   'max_blockchains_api_failures'         =>  '3',    // Return error after this number of sequential failed attempts to retrieve blockchain data.
-   'max_unusable_generated_addresses'     =>  '20',   // Return error after this number of unusable (non-empty) bitcoin addresses were sequentially generated
-   'blockchain_api_timeout_secs'          =>  '20',   // Connection and request timeouts for curl operations dealing with blockchain requests.
+   'starting_index_for_new_ltc_addresses' =>  '2',    // Generate new addresses for the wallet starting from this index.
+   'max_liteapis_api_failures'         =>  '3',    // Return error after this number of sequential failed attempts to retrieve liteapi data.
+   'max_unusable_generated_addresses'     =>  '20',   // Return error after this number of unusable (non-empty) litecoin addresses were sequentially generated
+   'liteapi_api_timeout_secs'          =>  '20',   // Connection and request timeouts for curl operations dealing with liteapi requests.
    'soft_cron_job_schedule_name'          =>  'minutes_2.5',   // WP cron job frequency
    'delete_expired_unpaid_orders'         =>  true,   // Automatically delete expired, unpaid orders from WooCommerce->Orders database
    'reuse_expired_addresses'              =>  true,   // True - may reduce anonymouty of store customers (someone may click/generate bunch of fake orders to list many addresses that in a future will be used by real customers).
@@ -41,7 +41,7 @@ $g_BWWC__config_defaults = array (
    'delete_db_tables_on_uninstall'        =>  '0',
    'enable_soft_cron_job'                 =>  '1',    // Enable "soft" Wordpress-driven cron jobs.
 
-   // ------- Copy of $this->settings of 'BWWC_Bitcoin' class.
+   // ------- Copy of $this->settings of 'BWWC_Litecoin' class.
    'gateway_settings'                     =>  array('confirmations' => 6),
 
    // ------- Special settings
@@ -272,14 +272,14 @@ function BWWC__stripslashes (&$val)
 //===========================================================================
 /*
     ----------------------------------
-    : Table 'btc_addresses' :
+    : Table 'ltc_addresses' :
     ----------------------------------
       status                "unused"      - never been used address with last known zero balance
                             "assigned"    - order was placed and this address was assigned for payment
                             "revalidate"  - assigned/expired, unused or unknown address suddenly got non-zero balance in it. Revalidate it for possible late order payment against meta_data.
                             "used"        - order was placed and this address and payment in full was received. Address will not be used again.
                             "xused"       - address was used (touched with funds) by unknown entity outside of this application. No metadata is present for this address, will not be able to correlated it with any order.
-                            "unknown"     - new address was generated but cannot retrieve balance due to blockchain API failure.
+                            "unknown"     - new address was generated but cannot retrieve balance due to liteapi API failure.
 */
 function BWWC__create_database_tables ($bwwc_settings)
 {
@@ -287,9 +287,9 @@ function BWWC__create_database_tables ($bwwc_settings)
 
   ///$persistent_settings_table_name       = $wpdb->prefix . 'bwwc_persistent_settings';
   ///$electrum_wallets_table_name          = $wpdb->prefix . 'bwwc_electrum_wallets';
-  $btc_addresses_table_name             = $wpdb->prefix . 'bwwc_btc_addresses';
+  $ltc_addresses_table_name             = $wpdb->prefix . 'bwwc_ltc_addresses';
 
-  if($wpdb->get_var("SHOW TABLES LIKE '$btc_addresses_table_name'") != $btc_addresses_table_name)
+  if($wpdb->get_var("SHOW TABLES LIKE '$ltc_addresses_table_name'") != $ltc_addresses_table_name)
       $b_first_time = true;
   else
       $b_first_time = false;
@@ -312,9 +312,9 @@ function BWWC__create_database_tables ($bwwc_settings)
   ///   );";
   /// $wpdb->query ($query);
 
-  $query = "CREATE TABLE IF NOT EXISTS `$btc_addresses_table_name` (
+  $query = "CREATE TABLE IF NOT EXISTS `$ltc_addresses_table_name` (
     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-    `btc_address` char(36) NOT NULL,
+    `ltc_address` char(36) NOT NULL,
     `origin_id` char(64) NOT NULL DEFAULT '',
     `index_in_wallet` bigint(20) NOT NULL DEFAULT '0',
     `status` char(16)  NOT NULL DEFAULT 'unknown',
@@ -324,7 +324,7 @@ function BWWC__create_database_tables ($bwwc_settings)
     `received_funds_checked_at` bigint(20) NOT NULL DEFAULT '0',
     `address_meta` text NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `btc_address` (`btc_address`),
+    UNIQUE KEY `ltc_address` (`ltc_address`),
     UNIQUE KEY `index_in_wallet` (`index_in_wallet`)
     );";
   $wpdb->query ($query);
@@ -351,11 +351,11 @@ function BWWC__delete_database_tables ()
 
   ///$persistent_settings_table_name       = $wpdb->prefix . 'bwwc_persistent_settings';
   ///$electrum_wallets_table_name          = $wpdb->prefix . 'bwwc_electrum_wallets';
-  $btc_addresses_table_name    = $wpdb->prefix . 'bwwc_btc_addresses';
+  $ltc_addresses_table_name    = $wpdb->prefix . 'bwwc_ltc_addresses';
 
   ///$wpdb->query("DROP TABLE IF EXISTS `$persistent_settings_table_name`");
   ///$wpdb->query("DROP TABLE IF EXISTS `$electrum_wallets_table_name`");
-  $wpdb->query("DROP TABLE IF EXISTS `$btc_addresses_table_name`");
+  $wpdb->query("DROP TABLE IF EXISTS `$ltc_addresses_table_name`");
 }
 //===========================================================================
 

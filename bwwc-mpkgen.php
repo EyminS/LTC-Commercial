@@ -16,7 +16,7 @@
 
 // search and replace 'bcmath_Utils::bc' with 'gmp_Utils::gmp_' to use much faster gmp module
 //===========================================================================
-function BWWC__MATH_generate_bitcoin_address_from_mpk ($master_public_key, $key_index)
+function BWWC__MATH_generate_litecoin_address_from_mpk ($master_public_key, $key_index)
 {
 	if (USE_EXT != 'GMP' && USE_EXT != 'BCMATH')
 		return false;

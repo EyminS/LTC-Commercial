@@ -1,7 +1,7 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 
@@ -34,7 +34,7 @@ function BWWC_cron_job_worker ($hardcron=false)
   }
 
   // status = "unused", "assigned", "used"
-  $btc_addresses_table_name     = $wpdb->prefix . 'bwwc_btc_addresses';
+  $ltc_addresses_table_name     = $wpdb->prefix . 'bwwc_ltc_addresses';
 
   $funds_received_value_expires_in_secs = $bwwc_settings['funds_received_value_expires_in_mins'] * 60;
   $assigned_address_expires_in_secs     = $bwwc_settings['assigned_address_expires_in_mins'] * 60;
@@ -51,7 +51,7 @@ function BWWC_cron_job_worker ($hardcron=false)
   //     'revalidate' - all
   //        order results by most recently assigned
   $query =
-    "SELECT * FROM `$btc_addresses_table_name`
+    "SELECT * FROM `$ltc_addresses_table_name`
       WHERE
       (
         (`status`='assigned' AND (('$current_time' - `assigned_at`) < '$assigned_address_expires_in_secs'))
@@ -73,7 +73,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 		  $row_id       = $row_for_balance_check['id'];
 
 		  // Retrieve current balance at address.
-		  $balance_info_array = BWWC__getreceivedbyaddress_info ($row_for_balance_check['btc_address'], $confirmations_required, $bwwc_settings['blockchain_api_timeout_secs']);
+		  $balance_info_array = BWWC__getreceivedbyaddress_info ($row_for_balance_check['ltc_address'], $confirmations_required, $bwwc_settings['liteapi_api_timeout_secs']);
 		  if ($balance_info_array['result'] == 'success')
 		  {
 		    /*
@@ -88,7 +88,7 @@ function BWWC_cron_job_worker ($hardcron=false)
         // Refresh 'received_funds_checked_at' field
         $current_time = time();
         $query =
-          "UPDATE `$btc_addresses_table_name`
+          "UPDATE `$ltc_addresses_table_name`
              SET
                 `total_received_funds` = '{$balance_info_array['balance']}',
                 `received_funds_checked_at`='$current_time'
@@ -104,7 +104,7 @@ function BWWC_cron_job_worker ($hardcron=false)
             {
               // No proper metadata present. Mark this address as 'xused' (used by unknown entity outside of this application) and be done with it forever.
               $query =
-                "UPDATE `$btc_addresses_table_name`
+                "UPDATE `$ltc_addresses_table_name`
                    SET
                       `status` = 'xused'
                   WHERE `id`='$row_id';";
@@ -115,7 +115,7 @@ function BWWC_cron_job_worker ($hardcron=false)
             {
               // Metadata for this address is present. Mark this address as 'assigned' and treat it like that further down...
               $query =
-                "UPDATE `$btc_addresses_table_name`
+                "UPDATE `$ltc_addresses_table_name`
                    SET
                       `status` = 'assigned'
                   WHERE `id`='$row_id';";
@@ -123,11 +123,11 @@ function BWWC_cron_job_worker ($hardcron=false)
             }
           }
 
-          BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Detected non-zero balance at address: '{$row_for_balance_check['btc_address']}, order ID = '{$last_order_info['order_id']}'. Detected balance ='{$balance_info_array['balance']}'.");
+          BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Detected non-zero balance at address: '{$row_for_balance_check['ltc_address']}, order ID = '{$last_order_info['order_id']}'. Detected balance ='{$balance_info_array['balance']}'.");
 
           if ($balance_info_array['balance'] < $last_order_info['order_total'])
           {
-            BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: balance at address: '{$row_for_balance_check['btc_address']}' (BTC '{$balance_info_array['balance']}') is not yet sufficient to complete it's order (order ID = '{$last_order_info['order_id']}'). Total required: '{$last_order_info['order_total']}'. Will wait for more funds to arrive...");
+            BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: balance at address: '{$row_for_balance_check['ltc_address']}' (BTC '{$balance_info_array['balance']}') is not yet sufficient to complete it's order (order ID = '{$last_order_info['order_id']}'). Total required: '{$last_order_info['order_total']}'. Will wait for more funds to arrive...");
           }
         }
 
@@ -146,7 +146,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 		                  // All orders placed on this address in reverse chronological order
 		                  array (
 		                     'order_id'     => $order_id,
-		                     'order_total'  => $order_total_in_btc,
+		                     'order_total'  => $order_total_in_ltc,
 		                     'order_datetime'  => date('Y-m-d H:i:s T'),
 		                     'requested_by_ip' => @$_SERVER['REMOTE_ADDR'],
 		                  ),
@@ -159,7 +159,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 		      */
 
 	        // Last order was fully paid! Complete it...
-	        BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Full payment for order ID '{$last_order_info['order_id']}' detected at address: '{$row_for_balance_check['btc_address']}' (BTC '{$balance_info_array['balance']}'). Total was required for this order: '{$last_order_info['order_total']}'. Processing order ...");
+	        BWWC__log_event (__FILE__, __LINE__, "Cron job: NOTE: Full payment for order ID '{$last_order_info['order_id']}' detected at address: '{$row_for_balance_check['ltc_address']}' (BTC '{$balance_info_array['balance']}'). Total was required for this order: '{$last_order_info['order_total']}'. Processing order ...");
 
 	        // Update order' meta info
 	        $address_meta['orders'][0]['paid'] = true;
@@ -177,7 +177,7 @@ function BWWC_cron_job_worker ($hardcron=false)
           // Note: `total_received_funds` and `received_funds_checked_at` are already updated above.
           //
 	        $query =
-	          "UPDATE `$btc_addresses_table_name`
+	          "UPDATE `$ltc_addresses_table_name`
 	             SET
 	                `status`='used',
 	                `address_meta`='$address_meta_serialized'
@@ -194,7 +194,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 		  }
 		  else
 		  {
-		    BWWC__log_event (__FILE__, __LINE__, "Cron job: Warning: Cannot retrieve balance for address: '{$row_for_balance_check['btc_address']}: " . $balance_info_array['message']);
+		    BWWC__log_event (__FILE__, __LINE__, "Cron job: Warning: Cannot retrieve balance for address: '{$row_for_balance_check['ltc_address']}: " . $balance_info_array['message']);
 		  }
 		}
 	}
@@ -203,7 +203,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 	// ...
 
   //-----------------------------------------------------
-  // Pre-generate new bitcoin address for electrum wallet
+  // Pre-generate new litecoin address for electrum wallet
 
   // Try to retrieve mpk from copy of settings.
   if ($hardcron)
@@ -234,7 +234,7 @@ function BWWC_cron_job_worker ($hardcron=false)
       //
       // Hence - any returned address will be clean to use.
       $query =
-        "SELECT COUNT(*) as `total_unused_addresses` FROM `$btc_addresses_table_name`
+        "SELECT COUNT(*) as `total_unused_addresses` FROM `$ltc_addresses_table_name`
            WHERE `origin_id`='$origin_id'
            AND `total_received_funds`='0'
            AND (('$current_time' - `received_funds_checked_at`) < '$funds_received_value_expires_in_secs')
@@ -244,7 +244,7 @@ function BWWC_cron_job_worker ($hardcron=false)
 
       if ($total_unused_addresses < $bwwc_settings['max_unused_addresses_buffer'])
       {
-        BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings, $electrum_mpk);
+        BWWC__generate_new_litecoin_address_for_electrum_wallet ($bwwc_settings, $electrum_mpk);
       }
     }
   }

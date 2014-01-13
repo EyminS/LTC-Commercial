@@ -8,12 +8,12 @@
 
 
 
-Plugin Name: Bitcoin Payments for WooCommerce
-Plugin URI: http://www.bitcoinway.com/
-Description: Bitcoin Payments for WooCommerce plugin allows you to accept payments in bitcoins for physical and digital products at your WooCommerce-powered online store.
+Plugin Name: Litecoin Payments for WooCommerce
+Plugin URI: http://www.litecoinway.com/
+Description: Litecoin Payments for WooCommerce plugin allows you to accept payments in litecoins for physical and digital products at your WooCommerce-powered online store.
 Version: 2.12
-Author: BitcoinWay
-Author URI: http://www.bitcoinway.com/
+Author: LitecoinWay
+Author URI: http://www.litecoinway.com/
 License: GNU General Public License 2.0 (GPL) http://www.gnu.org/licenses/gpl.html
 
 */
@@ -122,17 +122,17 @@ function BWWC_create_menu()
     // create new top-level menu
     // http://www.fileformat.info/info/unicode/char/e3f/index.htm
     add_menu_page (
-        __('Woo Bitcoin', BWWC_I18N_DOMAIN),                    // Page title
-        __('Bitcoin', BWWC_I18N_DOMAIN),                        // Menu Title - lower corner of admin menu
+        __('Woo Litecoin', BWWC_I18N_DOMAIN),                    // Page title
+        __('Litecoin', BWWC_I18N_DOMAIN),                        // Menu Title - lower corner of admin menu
         'administrator',                                        // Capability
         'bwwc-settings',                                        // Handle - First submenu's handle must be equal to parent's handle to avoid duplicate menu entry.
         'BWWC__render_general_settings_page',                   // Function
-        plugins_url('/images/bitcoin_16x.png', __FILE__)                // Icon URL
+        plugins_url('/images/litecoin_16x.png', __FILE__)                // Icon URL
         );
 
     add_submenu_page (
         'bwwc-settings',                                        // Parent
-        __("WooCommerce Bitcoin Payments Gateway", BWWC_I18N_DOMAIN),                   // Page title
+        __("WooCommerce Litecoin Payments Gateway", BWWC_I18N_DOMAIN),                   // Page title
         __("General Settings", BWWC_I18N_DOMAIN),               // Menu Title
         'administrator',                                        // Capability
         'bwwc-settings',                                        // Handle - First submenu's handle must be equal to parent's handle to avoid duplicate menu entry.

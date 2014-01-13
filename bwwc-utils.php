@@ -1,7 +1,7 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 
@@ -12,7 +12,7 @@ http://www.bitcoinway.com/
       $order_info =
          array (
             'order_id'        => $order_id,
-            'order_total'     => $order_total_in_btc,
+            'order_total'     => $order_total_in_ltc,
             'order_datetime'  => date('Y-m-d H:i:s T'),
             'requested_by_ip' => @$_SERVER['REMOTE_ADDR'],
             );
@@ -24,18 +24,18 @@ http://www.bitcoinway.com/
        'result'                      => 'success', // OR 'error'
        'message'                     => '...',
        'host_reply_raw'              => '......',
-       'generated_bitcoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
+       'generated_litecoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
        );
 */
 //
 
 
-function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_info)
+function BWWC__get_litecoin_address_for_payment__electrum ($electrum_mpk, $order_info)
 {
    global $wpdb;
 
    // status = "unused", "assigned", "used"
-   $btc_addresses_table_name     = $wpdb->prefix . 'bwwc_btc_addresses';
+   $ltc_addresses_table_name     = $wpdb->prefix . 'bwwc_ltc_addresses';
    $origin_id                    = 'electrum.mpk.' . md5($electrum_mpk);
 
    $bwwc_settings = BWWC__get_settings ();
@@ -59,7 +59,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
    //
    // Hence - any returned address will be clean to use.
    $query =
-      "SELECT `btc_address` FROM `$btc_addresses_table_name`
+      "SELECT `ltc_address` FROM `$ltc_addresses_table_name`
          WHERE `origin_id`='$origin_id'
          AND `total_received_funds`='0'
          AND (('$current_time' - `received_funds_checked_at`) < '$funds_received_value_expires_in_secs')
@@ -80,7 +80,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
       //
       // Hence - any returned address with freshened balance==0 will be clean to use.
       $query =
-         "SELECT * FROM `$btc_addresses_table_name`
+         "SELECT * FROM `$ltc_addresses_table_name`
             WHERE `origin_id`='$origin_id'
             AND (
                `status`='unused'
@@ -96,25 +96,24 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
       //-------------------------------------------------------
       // Try to re-verify balances of existing addresses (with old or non-existing balances) before reverting to slow operation of generating new address.
       //
-      $blockchains_api_failures = 0;
+      $litecoins_api_failures = 0;
       foreach ($addresses_to_verify_for_zero_balances_rows as $address_to_verify_for_zero_balance_row)
       {
-         // http://blockexplorer.com/q/getreceivedbyaddress/1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2
-         // http://blockchain.info/q/getreceivedbyaddress/1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2 [?confirmations=6]
+         // http://explorer.litecoin.net/chain/Litecoin/q/getreceivedbyaddress/LbfSCZE1p9A3Yj2JK1n57kxyD2H1ZSXtNG
          //
-         $address_to_verify_for_zero_balance = $address_to_verify_for_zero_balance_row['btc_address'];
-         $ret_info_array = BWWC__getreceivedbyaddress_info ($address_to_verify_for_zero_balance, 0, $bwwc_settings['blockchain_api_timeout_secs']);
+         $address_to_verify_for_zero_balance = $address_to_verify_for_zero_balance_row['ltc_address'];
+         $ret_info_array = BWWC__getreceivedbyaddress_info ($address_to_verify_for_zero_balance, 0, $bwwc_settings['liteapi_api_timeout_secs']);
          if ($ret_info_array['balance'] === false)
          {
-           $blockchains_api_failures ++;
-           if ($blockchains_api_failures >= $bwwc_settings['max_blockchains_api_failures'])
+           $liteapis_api_failures ++;
+           if ($liteapis_api_failures >= $bwwc_settings['max_liteapis_api_failures'])
            {
-             // Allow no more than 3 contigious blockchains API failures. After which return error reply.
+             // Allow no more than 3 contigious liteapis API failures. After which return error reply.
              $ret_info_array = array (
                'result'                      => 'error',
                'message'                     => $ret_info_array['message'],
                'host_reply_raw'              => $ret_info_array['host_reply_raw'],
-               'generated_bitcoin_address'   => false,
+               'generated_litecoin_address'   => false,
                );
              return $ret_info_array;
            }
@@ -141,12 +140,12 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
 
 						$current_time = time();
 			      $query =
-			      "UPDATE `$btc_addresses_table_name`
+			      "UPDATE `$ltc_addresses_table_name`
 			         SET
 			            `status`='$new_status',
 			            `total_received_funds` = '{$ret_info_array['balance']}',
 			            `received_funds_checked_at`='$current_time'
-			        WHERE `btc_address`='$address_to_verify_for_zero_balance';";
+			        WHERE `ltc_address`='$address_to_verify_for_zero_balance';";
 			      $ret_code = $wpdb->query ($query);
 					}
         }
@@ -162,14 +161,14 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
     Returns:
        $ret_info_array = array (
           'result'                      => 'success', // 'error'
-          'message'                     => '', // Failed to find/generate bitcoin address',
+          'message'                     => '', // Failed to find/generate litecoin address',
           'host_reply_raw'              => '', // Error. No host reply availabe.',
-          'generated_bitcoin_address'   => '1FVai2j2FsFvCbgsy22ZbSMfUd3HLUHvKx', // false,
+          'generated_litecoin_address'   => '1FVai2j2FsFvCbgsy22ZbSMfUd3HLUHvKx', // false,
           );
     */
-    $ret_addr_array = BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings, $electrum_mpk);
+    $ret_addr_array = BWWC__generate_new_litecoin_address_for_electrum_wallet ($bwwc_settings, $electrum_mpk);
     if ($ret_addr_array['result'] == 'success')
-      $clean_address = $ret_addr_array['generated_bitcoin_address'];
+      $clean_address = $ret_addr_array['generated_litecoin_address'];
   }
   //-------------------------------------------------------
 
@@ -180,7 +179,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
          $order_info =
          array (
             'order_id'     => $order_id,
-            'order_total'  => $order_total_in_btc,
+            'order_total'  => $order_total_in_ltc,
             'order_datetime'  => date('Y-m-d H:i:s T'),
             'requested_by_ip' => @$_SERVER['REMOTE_ADDR'],
             );
@@ -195,7 +194,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
                   // All orders placed on this address in reverse chronological order
                   array (
                      'order_id'     => $order_id,
-                     'order_total'  => $order_total_in_btc,
+                     'order_total'  => $order_total_in_ltc,
                      'order_datetime'  => date('Y-m-d H:i:s T'),
                      'requested_by_ip' => @$_SERVER['REMOTE_ADDR'],
                   ),
@@ -208,7 +207,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
       */
 
       // Prepare `address_meta` field for this clean address.
-      $address_meta = $wpdb->get_var ("SELECT `address_meta` FROM `$btc_addresses_table_name` WHERE `btc_address`='$clean_address'");
+      $address_meta = $wpdb->get_var ("SELECT `address_meta` FROM `$ltc_addresses_table_name` WHERE `ltc_address`='$clean_address'");
       $address_meta = BWWC_unserialize_address_meta ($address_meta);
 
       if (!isset($address_meta['orders']) || !is_array($address_meta['orders']))
@@ -224,7 +223,7 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
       $current_time = time();
       $remote_addr  = $order_info['requested_by_ip'];
       $query =
-      "UPDATE `$btc_addresses_table_name`
+      "UPDATE `$ltc_addresses_table_name`
          SET
             `total_received_funds` = '0',
             `received_funds_checked_at`='$current_time',
@@ -232,14 +231,14 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
             `assigned_at`='$current_time',
             `last_assigned_to_ip`='$remote_addr',
             `address_meta`='$address_meta_serialized'
-        WHERE `btc_address`='$clean_address';";
+        WHERE `ltc_address`='$clean_address';";
       $ret_code = $wpdb->query ($query);
 
       $ret_info_array = array (
          'result'                      => 'success',
          'message'                     => "",
          'host_reply_raw'              => "",
-         'generated_bitcoin_address'   => $clean_address,
+         'generated_litecoin_address'   => $clean_address,
          );
 
       return $ret_info_array;
@@ -248,9 +247,9 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
 
    $ret_info_array = array (
       'result'                      => 'error',
-      'message'                     => 'Failed to find/generate bitcoin address. ' . $ret_addr_array['message'],
+      'message'                     => 'Failed to find/generate litecoin address. ' . $ret_addr_array['message'],
       'host_reply_raw'              => $ret_addr_array['host_reply_raw'],
-      'generated_bitcoin_address'   => false,
+      'generated_litecoin_address'   => false,
       );
    return $ret_info_array;
 }
@@ -261,19 +260,19 @@ function BWWC__get_bitcoin_address_for_payment__electrum ($electrum_mpk, $order_
 Returns:
    $ret_info_array = array (
       'result'                      => 'success', // 'error'
-      'message'                     => '', // Failed to find/generate bitcoin address',
+      'message'                     => '', // Failed to find/generate litecoin address',
       'host_reply_raw'              => '', // Error. No host reply availabe.',
-      'generated_bitcoin_address'   => '1FVai2j2FsFvCbgsy22ZbSMfUd3HLUHvKx', // false,
+      'generated_litecoin_address'   => '1FVai2j2FsFvCbgsy22ZbSMfUd3HLUHvKx', // false,
       );
 */
 // If $bwwc_settings or $electrum_mpk are missing - the best attempt will be made to manifest them.
 // For performance reasons it is better to pass in these vars. if available.
 //
-function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=false, $electrum_mpk=false)
+function BWWC__generate_new_litecoin_address_for_electrum_wallet ($bwwc_settings=false, $electrum_mpk=false)
 {
   global $wpdb;
 
-  $btc_addresses_table_name = $wpdb->prefix . 'bwwc_btc_addresses';
+  $ltc_addresses_table_name = $wpdb->prefix . 'bwwc_ltc_addresses';
 
   if (!$bwwc_settings)
     $bwwc_settings = BWWC__get_settings ();
@@ -285,12 +284,12 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
 
     if (!$electrum_mpk || @$bwwc_settings['gateway_settings']['service_provider'] != 'electrum-wallet')
     {
-      // Bitcoin gateway settings either were not saved
+      // Litecoin gateway settings either were not saved
      $ret_info_array = array (
         'result'                      => 'error',
         'message'                     => 'No MPK passed and either no MPK present in copy-settings or service provider is not Electrum',
         'host_reply_raw'              => '',
-        'generated_bitcoin_address'   => false,
+        'generated_litecoin_address'   => false,
         );
      return $ret_info_array;
     }
@@ -304,18 +303,18 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
   $clean_address = false;
 
   // Find next index to generate
-  $next_key_index = $wpdb->get_var ("SELECT MAX(`index_in_wallet`) AS `max_index_in_wallet` FROM `$btc_addresses_table_name` WHERE `origin_id`='$origin_id';");
+  $next_key_index = $wpdb->get_var ("SELECT MAX(`index_in_wallet`) AS `max_index_in_wallet` FROM `$ltc_addresses_table_name` WHERE `origin_id`='$origin_id';");
   if ($next_key_index === NULL)
-    $next_key_index = $bwwc_settings['starting_index_for_new_btc_addresses']; // Start generation of addresses from index #2 (skip two leading wallet's addresses)
+    $next_key_index = $bwwc_settings['starting_index_for_new_ltc_addresses']; // Start generation of addresses from index #2 (skip two leading wallet's addresses)
   else
     $next_key_index = $next_key_index+1;  // Continue with next index
 
   $total_new_keys_generated = 0;
-  $blockchains_api_failures = 0;
+  $liteapis_api_failures = 0;
   do
   {
-    $new_btc_address = BWWC__MATH_generate_bitcoin_address_from_mpk ($electrum_mpk, $next_key_index);
-    $ret_info_array  = BWWC__getreceivedbyaddress_info ($new_btc_address, 0, $bwwc_settings['blockchain_api_timeout_secs']);
+    $new_ltc_address = BWWC__MATH_generate_litecoin_address_from_mpk ($electrum_mpk, $next_key_index);
+    $ret_info_array  = BWWC__getreceivedbyaddress_info ($new_ltc_address, 0, $bwwc_settings['liteapi_api_timeout_secs']);
     $total_new_keys_generated ++;
 
     if ($ret_info_array['balance'] === false)
@@ -330,24 +329,24 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
 
     // Insert newly generated address into DB
     $query =
-      "INSERT INTO `$btc_addresses_table_name`
-      (`btc_address`, `origin_id`, `index_in_wallet`, `total_received_funds`, `received_funds_checked_at`, `status`) VALUES
-      ('$new_btc_address', '$origin_id', '$next_key_index', '$funds_received', '$received_funds_checked_at_time', '$status');";
+      "INSERT INTO `$ltc_addresses_table_name`
+      (`ltc_address`, `origin_id`, `index_in_wallet`, `total_received_funds`, `received_funds_checked_at`, `status`) VALUES
+      ('$new_ltc_address', '$origin_id', '$next_key_index', '$funds_received', '$received_funds_checked_at_time', '$status');";
     $ret_code = $wpdb->query ($query);
 
     $next_key_index++;
 
     if ($ret_info_array['balance'] === false)
     {
-      $blockchains_api_failures ++;
-      if ($blockchains_api_failures >= $bwwc_settings['max_blockchains_api_failures'])
+      $liteapis_api_failures ++;
+      if ($liteapis_api_failures >= $bwwc_settings['max_liteapis_api_failures'])
       {
-        // Allow no more than 3 contigious blockchains API failures. After which return error reply.
+        // Allow no more than 3 contigious liteapis API failures. After which return error reply.
         $ret_info_array = array (
           'result'                      => 'error',
           'message'                     => $ret_info_array['message'],
           'host_reply_raw'              => $ret_info_array['host_reply_raw'],
-          'generated_bitcoin_address'   => false,
+          'generated_litecoin_address'   => false,
           );
         return $ret_info_array;
       }
@@ -357,7 +356,7 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
       if ($ret_info_array['balance'] == 0)
       {
         // Update DB with balance and timestamp, mark address as 'assigned' and return this address as clean.
-        $clean_address    = $new_btc_address;
+        $clean_address    = $new_ltc_address;
       }
     }
 
@@ -367,13 +366,13 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
     if ($total_new_keys_generated >= $bwwc_settings['max_unusable_generated_addresses'])
     {
       // Stop it after generating of 20 unproductive addresses.
-      // Something is wrong. Possibly old merchant's wallet (with many used addresses) is used for new installation. - For this case 'starting_index_for_new_btc_addresses'
+      // Something is wrong. Possibly old merchant's wallet (with many used addresses) is used for new installation. - For this case 'starting_index_for_new_ltc_addresses'
       //  needs to be proper set to high value.
       $ret_info_array = array (
         'result'                      => 'error',
-        'message'                     => "Problem: Generated '$total_new_keys_generated' addresses and none were found to be unused. Possibly old merchant's wallet (with many used addresses) is used for new installation. If that is the case - 'starting_index_for_new_btc_addresses' needs to be proper set to high value",
+        'message'                     => "Problem: Generated '$total_new_keys_generated' addresses and none were found to be unused. Possibly old merchant's wallet (with many used addresses) is used for new installation. If that is the case - 'starting_index_for_new_ltc_addresses' needs to be proper set to high value",
         'host_reply_raw'              => '',
-        'generated_bitcoin_address'   => false,
+        'generated_litecoin_address'   => false,
         );
       return $ret_info_array;
     }
@@ -385,7 +384,7 @@ function BWWC__generate_new_bitcoin_address_for_electrum_wallet ($bwwc_settings=
     'result'                      => 'success',
     'message'                     => '',
     'host_reply_raw'              => '',
-    'generated_bitcoin_address'   => $clean_address,
+    'generated_litecoin_address'   => $clean_address,
     );
 
   return $ret_info_array;
@@ -420,10 +419,9 @@ $ret_info_array = array (
   'balance'                     => false == error, else - balance
   );
 */
-function BWWC__getreceivedbyaddress_info ($btc_address, $required_confirmations=0, $api_timeout=10)
+function BWWC__getreceivedbyaddress_info ($ltc_address, $required_confirmations=0, $api_timeout=10)
 {
-  // http://blockexplorer.com/q/getreceivedbyaddress/1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2
-  // http://blockchain.info/q/getreceivedbyaddress/1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2 [?confirmations=6]
+  // http://explorer.litecoin.net/chain/Litecoin/q/getreceivedbyaddress/LbfSCZE1p9A3Yj2JK1n57kxyD2H1ZSXtNG
 
    if ($required_confirmations)
    {
@@ -436,17 +434,10 @@ function BWWC__getreceivedbyaddress_info ($btc_address, $required_confirmations=
       $confirmations_url_part_bci = "";
    }
 
-   // Help: http://blockexplorer.com/
-   $funds_received = BWWC__file_get_contents ('http://blockexplorer.com/q/getreceivedbyaddress/' . $btc_address . $confirmations_url_part_bec, true, $api_timeout);
+   $funds_received = BWWC__file_get_contents ('http://explorer.litecoin.net/chain/Litecoin/q/getreceivedbyaddress/' . $ltc_address . $confirmations_url_part_bec, true, $api_timeout);
    if (!is_numeric($funds_received))
    {
-      $blockexplorer_com_failure_reply = $funds_received;
-      // Help: http://blockchain.info/q
-      $funds_received = BWWC__file_get_contents ('http://blockchain.info/q/getreceivedbyaddress/' . $btc_address, true, $api_timeout);
-      $blockchain_info_failure_reply = $funds_received;
-
-		  if (is_numeric($funds_received))
-				$funds_received = sprintf("%.8f", $funds_received / 100000000.0);
+      $explorer_litecoin_net_failure_reply = $funds_received;
    }
 
   if (is_numeric($funds_received))
@@ -462,8 +453,8 @@ function BWWC__getreceivedbyaddress_info ($btc_address, $required_confirmations=
   {
     $ret_info_array = array (
       'result'                      => 'error',
-      'message'                     => "Blockchains API failure. Erratic replies:\n" . $blockexplorer_com_failure_reply . "\n" . $blockchain_info_failure_reply,
-      'host_reply_raw'              => $blockexplorer_com_failure_reply . "\n" . $blockchain_info_failure_reply,
+      'message'                     => "Blockchains API failure. Erratic replies:\n" . $explorer_litecoin_net_failure_reply . "\n" . $liteapi_info_failure_reply,
+      'host_reply_raw'              => $explorer_litecoin_net_failure_reply . "\n" . $liteapi_info_failure_reply,
       'balance'                     => false,
       );
   }
@@ -477,7 +468,7 @@ function BWWC__getreceivedbyaddress_info ($btc_address, $required_confirmations=
 // ------
 
 //    $callback_url => IPN notification URL upon received payment at generated address.
-//    $forwarding_bitcoin_address => Where all payments received at generated address should be ultimately forwarded to.
+//    $forwarding_litecoin_address => Where all payments received at generated address should be ultimately forwarded to.
 //
 // Returns:
 // --------
@@ -486,12 +477,12 @@ function BWWC__getreceivedbyaddress_info ($btc_address, $required_confirmations=
        'result'                      => 'success', // OR 'error'
        'message'                     => '...',
        'host_reply_raw'              => '......',
-       'generated_bitcoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
+       'generated_litecoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
        );
 */
 //
 
-function BWWC__generate_temporary_bitcoin_address__blockchain_info ($forwarding_bitcoin_address, $callback_url)
+function BWWC__generate_temporary_litecoin_address__liteapi_info ($forwarding_litecoin_address, $callback_url)
 {
    //--------------------------------------------
    // Normalize inputs.
@@ -499,22 +490,22 @@ function BWWC__generate_temporary_bitcoin_address__blockchain_info ($forwarding_
 
 
 
-   $blockchain_api_call = "https://blockchain.info/api/receive?method=create&address={$forwarding_bitcoin_address}&anonymous=false&callback={$callback_url}";
-   BWWC__log_event (__FILE__, __LINE__, "Calling blockchain.info API: " . $blockchain_api_call);
-   $result = @BWWC__file_get_contents ($blockchain_api_call, true);
+   $liteapi_api_call = "https://liteapi.org/receive?method=create&address={$forwarding_litecoin_address}&anonymous=false&callback={$callback_url}";
+   BWWC__log_event (__FILE__, __LINE__, "Calling liteapi.org API: " . $liteapi_api_call);
+   $result = @BWWC__file_get_contents ($liteapi_api_call, true);
    if ($result)
    {
       $json_obj = @json_decode(trim($result));
       if (is_object($json_obj))
       {
-         $generated_bitcoin_address = @$json_obj->input_address;
-         if (strlen($generated_bitcoin_address) > 20)
+         $generated_litecoin_address = @$json_obj->input_address;
+         if (strlen($generated_litecoin_address) > 20)
          {
             $ret_info_array = array (
                'result'                      => 'success',
                'message'                     => '',
                'host_reply_raw'              => $result,
-               'generated_bitcoin_address'   => $generated_bitcoin_address,
+               'generated_litecoin_address'   => $generated_litecoin_address,
                );
             return $ret_info_array;
          }
@@ -525,7 +516,7 @@ function BWWC__generate_temporary_bitcoin_address__blockchain_info ($forwarding_
       'result'                      => 'error',
       'message'                     => 'Blockchain.info API failure: ' . $result,
       'host_reply_raw'              => $result,
-      'generated_bitcoin_address'   => false,
+      'generated_litecoin_address'   => false,
       );
    return $ret_info_array;
 }
@@ -533,19 +524,19 @@ function BWWC__generate_temporary_bitcoin_address__blockchain_info ($forwarding_
 
 //===========================================================================
 // Returns:
-//    success: number of currency units (dollars, etc...) would take to convert to 1 bitcoin, ex: "15.32476".
+//    success: number of currency units (dollars, etc...) would take to convert to 1 litecoin, ex: "15.32476".
 //    failure: false
 //
 // $currency_code, one of: USD, AUD, CAD, CHF, CNY, DKK, EUR, GBP, HKD, JPY, NZD, PLN, RUB, SEK, SGD, THB
 // $rate_type:
 //    'avg'     -- 24 hrs average
 //    'vwap'    -- weighted average as per: http://en.wikipedia.org/wiki/VWAP
-//    'max'     -- maximize number of bitcoins to get for item priced in currency: == min (avg, vwap, sell)
-//                 This is useful to ensure maximum bitcoin gain for stores priced in other currencies.
+//    'max'     -- maximize number of litecoins to get for item priced in currency: == min (avg, vwap, sell)
+//                 This is useful to ensure maximum litecoin gain for stores priced in other currencies.
 //                 Note: This is the least favorable exchange rate for the store customer.
 // $get_ticker_string - true - ticker string of all exchange types for the given currency.
 
-function BWWC__get_exchange_rate_per_bitcoin ($currency_code, $rate_type = 'vwap', $get_ticker_string=false)
+function BWWC__get_exchange_rate_per_litecoin ($currency_code, $rate_type = 'vwap', $get_ticker_string=false)
 {
    if ($currency_code == 'BTC')
       return "1.00";   // 1:1
@@ -553,9 +544,7 @@ function BWWC__get_exchange_rate_per_bitcoin ($currency_code, $rate_type = 'vwap
    if (!@in_array($currency_code, BWWC__get_settings ('supported_currencies_arr')))
       return false;
 
-   $blockchain_url      = "http://blockchain.info/ticker";
-   $bitcoincharts_url   = 'http://bitcoincharts.com/t/weighted_prices.json'; // Currently not used as they are sometimes sluggish as well.
-   $mtgox_url           = "https://mtgox.com/api/1/BTC{$currency_code}/ticker";
+   $liteapi_url      = "http://liteapi.org/ticker";
 
    $bwwc_settings = BWWC__get_settings ();
 
@@ -582,8 +571,8 @@ function BWWC__get_exchange_rate_per_bitcoin ($currency_code, $rate_type = 'vwap
 
    if (!$avg || !$vwap || !$sell)
    {
-      # Getting rate from blockchain.info first as MtGox response is very slow from some locations.
-      $result = @BWWC__file_get_contents ($blockchain_url);
+      # Getting rate from liteapi.org
+      $result = @BWWC__file_get_contents ($liteapi_url);
       if ($result)
       {
          $json_obj = @json_decode(trim($result));
@@ -597,25 +586,7 @@ function BWWC__get_exchange_rate_per_bitcoin ($currency_code, $rate_type = 'vwap
 
    if (!$avg || !$vwap || !$sell)
    {
-      $result = @BWWC__file_get_contents ($mtgox_url);
-      if ($result)
-      {
-         $json_obj = @json_decode(trim($result));
-         if (is_object($json_obj))
-         {
-            if ($json_obj->result == 'success')
-            {
-               $avg  = @$json_obj->return->avg->value;
-               $vwap = @$json_obj->return->vwap->value;
-               $sell = @$json_obj->return->sell->value;
-            }
-         }
-      }
-   }
-
-   if (!$avg || !$vwap || !$sell)
-   {
-      $msg = "<span style='color:red;'>WARNING: failed to retrieve bitcoin exchange rates from all attempts. Internet connection/outgoing call security issues?</span>";
+      $msg = "<span style='color:red;'>WARNING: failed to retrieve litecoin exchange rates from all attempts. Internet connection/outgoing call security issues?</span>";
       BWWC__log_event (__FILE__, __LINE__, $msg);
       if ($get_ticker_string)
          return $msg;
@@ -637,7 +608,7 @@ function BWWC__get_exchange_rate_per_bitcoin ($currency_code, $rate_type = 'vwap
    if ($get_ticker_string)
    {
       $max = min ($avg, $vwap, $sell);
-      return "<span style='color:darkgreen;'>Current Rates for 1 Bitcoin (in {$currency_code}): Average={$avg}, Weighted Average={$vwap}, Maximum={$max}</span>";
+      return "<span style='color:darkgreen;'>Current Rates for 1 Litecoin (in {$currency_code}): Average={$avg}, Weighted Average={$vwap}, Maximum={$max}</span>";
    }
 
    switch ($rate_type)
@@ -762,7 +733,7 @@ function BWWC__safe_string_escape ($str="")
 function BWWC__log_event ($filename, $linenum, $message, $prepend_path="", $log_file_name='__log.php')
 {
    $log_filename   = dirname(__FILE__) . $prepend_path . '/' . $log_file_name;
-   $logfile_header = "<?php exit(':-)'); ?>\n" . '/* =============== BitcoinWay LOG file =============== */' . "\r\n";
+   $logfile_header = "<?php exit(':-)'); ?>\n" . '/* =============== LitecoinWay LOG file =============== */' . "\r\n";
    $logfile_tail   = "\r\nEND";
 
    // Delete too long logfiles.

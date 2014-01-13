@@ -1,18 +1,18 @@
 <?php
 /*
-Bitcoin Payments for WooCommerce
-http://www.bitcoinway.com/
+Litecoin Payments for WooCommerce
+http://www.litecoinway.com/
 */
 
 
 //---------------------------------------------------------------------------
-add_action('plugins_loaded', 'BWWC__plugins_loaded__load_bitcoin_gateway', 0);
+add_action('plugins_loaded', 'BWWC__plugins_loaded__load_litecoin_gateway', 0);
 //---------------------------------------------------------------------------
 
 //###########################################################################
 // Hook payment gateway into WooCommerce
 
-function BWWC__plugins_loaded__load_bitcoin_gateway ()
+function BWWC__plugins_loaded__load_litecoin_gateway ()
 {
 
     if (!class_exists('WC_Payment_Gateway'))
@@ -21,17 +21,17 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 	//=======================================================================
 	/**
-	 * Bitcoin Payment Gateway
+	 * Litecoin Payment Gateway
 	 *
-	 * Provides a Bitcoin Payment Gateway
+	 * Provides a Litecoin Payment Gateway
 	 *
-	 * @class 		BWWC_Bitcoin
+	 * @class 		BWWC_Litecoin
 	 * @extends		WC_Payment_Gateway
 	 * @version
 	 * @package
-	 * @author 		BitcoinWay
+	 * @author 		LitecoinWay
 	 */
-	class BWWC_Bitcoin extends WC_Payment_Gateway
+	class BWWC_Litecoin extends WC_Payment_Gateway
 	{
 		//-------------------------------------------------------------------
 	    /**
@@ -42,10 +42,10 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	     */
 		public function __construct()
 		{
-      $this->id				= 'bitcoin';
-      $this->icon 			= plugins_url('/images/btc_buyitnow_32x.png', __FILE__);	// 32 pixels high
+      $this->id				= 'litecoin';
+      $this->icon 			= plugins_url('/images/ltc_buyitnow_32x.png', __FILE__);	// 32 pixels high
       $this->has_fields 		= false;
-      $this->method_title     = __( 'Bitcoin', 'woocommerce' );
+      $this->method_title     = __( 'Litecoin', 'woocommerce' );
 
 			// Load the settings.
 			$this->init_settings();
@@ -54,7 +54,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 			$this->title 		= $this->settings['title'];	// The title which the user is shown on the checkout – retrieved from the settings which init_settings loads.
 			$this->service_provider = $this->settings['service_provider'];
 			$this->electrum_master_public_key = $this->settings['electrum_master_public_key'];
-			$this->bitcoin_addr_merchant = $this->settings['bitcoin_addr_merchant'];	// Forwarding address where all product payments will aggregate.
+			$this->litecoin_addr_merchant = $this->settings['litecoin_addr_merchant'];	// Forwarding address where all product payments will aggregate.
 			
 			$this->confirmations = $this->settings['confirmations'];
 			$this->exchange_rate_type = $this->settings['exchange_rate_type'];
@@ -80,9 +80,9 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 			// Hook IPN callback logic
 			if (version_compare (WOOCOMMERCE_VERSION, '2.0', '<'))
-				add_action('init', array(&$this, 'BWWC__maybe_bitcoin_ipn_callback'));
+				add_action('init', array(&$this, 'BWWC__maybe_litecoin_ipn_callback'));
 			else
-				add_action('woocommerce_api_' . strtolower(get_class($this)), array($this,'BWWC__maybe_bitcoin_ipn_callback'));
+				add_action('woocommerce_api_' . strtolower(get_class($this)), array($this,'BWWC__maybe_litecoin_ipn_callback'));
 
 			// Validate currently set currency for the store. Must be among supported ones.
 			if (!$this->BWWC__is_gateway_valid_for_use()) $this->enabled = false;
@@ -104,19 +104,19 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	    	// Validate settings
 	    	if (!$this->service_provider)
 	    	{
-	    		$reason_message = __("Bitcoin Service Provider is not selected", 'woocommerce');
+	    		$reason_message = __("Litecoin Service Provider is not selected", 'woocommerce');
 	    		$valid = false;
 	    	}
-	    	else if ($this->service_provider=='blockchain.info')
+	    	else if ($this->service_provider=='litecoin.org')
 	    	{
-	    		if ($this->bitcoin_addr_merchant == '')
+	    		if ($this->litecoin_addr_merchant == '')
 	    		{
-		    		$reason_message = __("Your personal bitcoin address is not selected", 'woocommerce');
+		    		$reason_message = __("Your personal litecoin address is not selected", 'woocommerce');
 		    		$valid = false;
 	    		}
-	    		else if ($this->bitcoin_addr_merchant == '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2')
+	    		else if ($this->litecoin_addr_merchant == '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2')
 	    		{
-		    		$reason_message = __("Your personal bitcoin address is invalid. The address specified is Bitcoinway.com's donation address :)", 'woocommerce');
+		    		$reason_message = __("Your personal litecoin address is invalid. The address specified is Litecoinway.com's donation address :)", 'woocommerce');
 		    		$valid = false;
 	    		}
 	    	}
@@ -134,7 +134,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 		    	}
 		    	else if (!extension_loaded('gmp') && !extension_loaded('bcmath'))
 		    	{
-		    		$reason_message = __("ERROR: neither 'bcmath' nor 'gmp' math extensions are loaded For Electrum wallet options to function. Contact your hosting company and ask them to enable either 'bcmath' or 'gmp' extensions. 'gmp' is preferred (much faster)! \nAlternatively you may choose another 'Bitcoin Service Provider' option.", 'woocommerce');
+		    		$reason_message = __("ERROR: neither 'bcmath' nor 'gmp' math extensions are loaded For Electrum wallet options to function. Contact your hosting company and ask them to enable either 'bcmath' or 'gmp' extensions. 'gmp' is preferred (much faster)! \nAlternatively you may choose another 'Litecoin Service Provider' option.", 'woocommerce');
 		    		$valid = false;
 		    	}
 	    	}
@@ -187,7 +187,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	   		else
 	   			$currency_code = $store_currency_code;
 
-				$currency_ticker = BWWC__get_exchange_rate_per_bitcoin ($currency_code, 'max', true);
+				$currency_ticker = BWWC__get_exchange_rate_per_litecoin ($currency_code, 'max', true);
 				$api_url = "https://mtgox.com/api/1/BTC{$currency_code}/ticker";
 	    	//-----------------------------------
 
@@ -196,7 +196,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	    	$payment_instructions = '
 <table class="bwwc-payment-instructions-table" id="bwwc-payment-instructions-table">
   <tr class="bpit-table-row">
-    <td colspan="2">' . __('Please send your bitcoin payment as follows:', 'woocommerce') . '</td>
+    <td colspan="2">' . __('Please send your litecoin payment as follows:', 'woocommerce') . '</td>
   </tr>
   <tr class="bpit-table-row">
     <td style="vertical-align:middle;" class="bpit-td-name bpit-td-name-amount">
@@ -204,17 +204,17 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
     </td>
     <td class="bpit-td-value bpit-td-value-amount">
       <div style="border:1px solid #FCCA09;padding:2px 6px;margin:2px;background-color:#FCF8E3;border-radius:4px;color:#CC0000;font-weight: bold;font-size: 120%;">
-      	{{{BITCOINS_AMOUNT}}}
+      	{{{LITECOINS_AMOUNT}}}
       </div>
     </td>
   </tr>
   <tr class="bpit-table-row">
-    <td style="vertical-align:middle;" class="bpit-td-name bpit-td-name-btcaddr">
+    <td style="vertical-align:middle;" class="bpit-td-name bpit-td-name-ltcaddr">
       Address:
     </td>
-    <td class="bpit-td-value bpit-td-value-btcaddr">
+    <td class="bpit-td-value bpit-td-value-ltcaddr">
       <div style="border:1px solid #FCCA09;padding:2px 6px;margin:2px;background-color:#FCF8E3;border-radius:4px;color:#555;font-weight: bold;font-size: 120%;">
-        {{{BITCOINS_ADDRESS}}}
+        {{{LITECOINS_ADDRESS}}}
       </div>
     </td>
   </tr>
@@ -224,7 +224,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
     </td>
     <td class="bpit-td-value bpit-td-value-qr">
       <div style="border:1px solid #FCCA09;padding:5px;margin:2px;background-color:#FCF8E3;border-radius:4px;">
-        <a href="bitcoin://{{{BITCOINS_ADDRESS}}}?amount={{{BITCOINS_AMOUNT}}}"><img src="https://blockchain.info/qr?data=bitcoin://{{{BITCOINS_ADDRESS}}}?amount={{{BITCOINS_AMOUNT}}}&size=180" style="vertical-align:middle;border:1px solid #888;" /></a>
+        <a href="litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}"><img src="https://litecoin.org/qr?data=litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}&size=180" style="vertical-align:middle;border:1px solid #888;" /></a>
       </div>
     </td>
   </tr>
@@ -241,7 +241,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 	    	$payment_instructions_description = '
 						  <p class="description" style="width:50%;float:left;width:49%;">
-					    	' . __( 'Specific instructions given to the customer to complete Bitcoins payment.<br />You may change it, but make sure these tags will be present: <b>{{{BITCOINS_AMOUNT}}}</b>, <b>{{{BITCOINS_ADDRESS}}}</b> and <b>{{{EXTRA_INSTRUCTIONS}}}</b> as these tags will be replaced with customer - specific payment details.', 'woocommerce' ) . '
+					    	' . __( 'Specific instructions given to the customer to complete Litecoins payment.<br />You may change it, but make sure these tags will be present: <b>{{{LITECOINS_AMOUNT}}}</b>, <b>{{{LITECOINS_ADDRESS}}}</b> and <b>{{{EXTRA_INSTRUCTIONS}}}</b> as these tags will be replaced with customer - specific payment details.', 'woocommerce' ) . '
 						  </p>
 						  <p class="description" style="width:50%;float:left;width:49%;">
 					    	Payment Instructions, original template (for reference):<br />
@@ -255,26 +255,26 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 				'enabled' => array(
 								'title' => __( 'Enable/Disable', 'woocommerce' ),
 								'type' => 'checkbox',
-								'label' => __( 'Enable Bitcoin Payments', 'woocommerce' ),
+								'label' => __( 'Enable Litecoin Payments', 'woocommerce' ),
 								'default' => 'yes'
 							),
 				'title' => array(
 								'title' => __( 'Title', 'woocommerce' ),
 								'type' => 'text',
 								'description' => __( 'This controls the title which the user sees during checkout.', 'woocommerce' ),
-								'default' => __( 'Bitcoin Payment', 'woocommerce' )
+								'default' => __( 'Litecoin Payment', 'woocommerce' )
 							),
 
 				'service_provider' => array(
-								'title' => __('Bitcoin service provider', 'woocommerce' ),
+								'title' => __('Litecoin service provider', 'woocommerce' ),
 								'type' => 'select',
 								'options' => array(
 									''  => __( 'Please choose your provider', 'woocommerce' ),
 									'electrum-wallet'  => __( 'Your own Electrum wallet', 'woocommerce' ),
-									'blockchain.info' => __( 'Blockchain.info API', 'woocommerce' ),
+									'litecoin.org' => __( 'Blockchain.info API', 'woocommerce' ),
 									),
 								'default' => '',
-								'description' => $this->service_provider?__("Please select your Bitcoin service provider and press [Save changes]. Then fill-in necessary details and press [Save changes] again.<br />Recommended setting: <b>Your own Electrum wallet</b>", 'woocommerce'):__("Recommended setting: 'Your own Electrum wallet'. <a href='http://electrum.org/' target='_blank'>Free download of Electrum wallet here</a>.", 'woocommerce'),
+								'description' => $this->service_provider?__("Please select your Litecoin service provider and press [Save changes]. Then fill-in necessary details and press [Save changes] again.<br />Recommended setting: <b>Your own Electrum wallet</b>", 'woocommerce'):__("Recommended setting: 'Your own Electrum wallet'. <a href='http://electrum.org/' target='_blank'>Free download of Electrum wallet here</a>.", 'woocommerce'),
 							),
 
 				'electrum_master_public_key' => array(
@@ -283,15 +283,15 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 								'default' => "",
 								'css'     => $this->service_provider!='electrum-wallet'?'display:none;':'',
 								'disabled' => $this->service_provider!='electrum-wallet'?true:false,
-								'description' => $this->service_provider!='electrum-wallet'?__('Available when Bitcoin service provider is set to: <b>Your own Electrum wallet</b>.', 'woocommerce'):__('Launch <a href="http://electrum.org/" target="_blank">Electrum wallet</a> and get Master Public Key value from Preferences -> Import/Export -> Master Public Key -> Show.<br />Copy long number string and paste it in this field.', 'woocommerce'),
+								'description' => $this->service_provider!='electrum-wallet'?__('Available when Litecoin service provider is set to: <b>Your own Electrum wallet</b>.', 'woocommerce'):__('Launch <a href="http://electrum.org/" target="_blank">Electrum wallet</a> and get Master Public Key value from Preferences -> Import/Export -> Master Public Key -> Show.<br />Copy long number string and paste it in this field.', 'woocommerce'),
 							),
 
-				'bitcoin_addr_merchant' => array(
-								'title' => __( 'Your personal bitcoin address', 'woocommerce' ),
+				'litecoin_addr_merchant' => array(
+								'title' => __( 'Your personal litecoin address', 'woocommerce' ),
 								'type' => 'text',
-								'css'     => $this->service_provider!='blockchain.info'?'display:none;':'',
-								'disabled' => $this->service_provider!='blockchain.info'?true:false,
-								'description' => $this->service_provider!='blockchain.info'?__('Available when Bitcoin service provider is set to: <b>Blockchain.info</b>', 'woocommerce'):__( 'Your own bitcoin address (such as: 1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2) - where you would like the payment to be sent. When customer sends you payment for the product - it will be automatically forwarded to this address by blockchain.info APIs.', 'woocommerce' ),
+								'css'     => $this->service_provider!='litecoin.org'?'display:none;':'',
+								'disabled' => $this->service_provider!='litecoin.org'?true:false,
+								'description' => $this->service_provider!='litecoin.org'?__('Available when Litecoin service provider is set to: <b>Blockchain.info</b>', 'woocommerce'):__( 'Your own litecoin address (such as: 1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2) - where you would like the payment to be sent. When customer sends you payment for the product - it will be automatically forwarded to this address by litecoin.org APIs.', 'woocommerce' ),
 								'default' => '',
 							),
 
@@ -299,7 +299,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 				'confirmations' => array(
 								'title' => __( 'Number of confirmations required before accepting payment', 'woocommerce' ),
 								'type' => 'text',
-								'description' => __( 'After a transaction is broadcast to the Bitcoin network, it may be included in a block that is published to the network. When that happens it is said that one <a href="https://en.bitcoin.it/wiki/Confirmation" target="_blank">confirmation has occurred</a> for the transaction. With each subsequent block that is found, the number of confirmations is increased by one. To protect against double spending, a transaction should not be considered as confirmed until a certain number of blocks confirm, or verify that transaction. <br />6 is considered very safe number of confirmations, although it takes longer to confirm.', 'woocommerce' ),
+								'description' => __( 'After a transaction is broadcast to the Litecoin network, it may be included in a block that is published to the network. When that happens it is said that one <a href="https://en.litecoin.it/wiki/Confirmation" target="_blank">confirmation has occurred</a> for the transaction. With each subsequent block that is found, the number of confirmations is increased by one. To protect against double spending, a transaction should not be considered as confirmed until a certain number of blocks confirm, or verify that transaction. <br />6 is considered very safe number of confirmations, although it takes longer to confirm.', 'woocommerce' ),
 								'default' => '6',
 							),
 				'exchange_rate_type' => array(
@@ -312,15 +312,15 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 									'max'  => __( 'Maximum', 'woocommerce' ),
 									),
 								'default' => 'vwap',
-								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-bitcoin default currency.</span><br />', 'woocommerce'):'') .
+								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
 									__('<b>Average</b>: <a href="https://mtgox.com/" target="_blank">MtGox</a> 24 hour average exchange rate<br /><b>Weighted Average</b> (recommended): MtGox <a href="http://en.wikipedia.org/wiki/VWAP" target="_blank">Weighted average</a> rate<br /><b>Maximum</b>: maximum exchange rate of all indicators (least favorable for customer). Calculated as: MIN (Average, Weighted Average, Sell price)') . " (<a href='{$api_url}' target='_blank'><b>rates API</b></a>)" . '<br />' . $currency_ticker,
 							),
 				'exchange_multiplier' => array(
 								'title' => __('Exchange rate multiplier', 'woocommerce' ),
 								'type' => 'text',
 								'disabled' => $store_currency_code=='BTC'?true:false,
-								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-bitcoin default currency.</span><br />', 'woocommerce'):'') .
-									__('Extra multiplier to apply to convert store default currency to bitcoin price. <br />Example: <b>1.05</b> - will add extra 5% to the total price in bitcoins. May be useful to compensate merchant\'s loss to fees when converting bitcoins to local currency, or to encourage customer to use bitcoins for purchases (by setting multiplier to < 1.00 values).', 'woocommerce' ),
+								'description' => ($store_currency_code=='BTC'?__('<span style="color:red;"><b>Disabled</b>: Applies only for stores with non-litecoin default currency.</span><br />', 'woocommerce'):'') .
+									__('Extra multiplier to apply to convert store default currency to litecoin price. <br />Example: <b>1.05</b> - will add extra 5% to the total price in litecoin. May be useful to compensate merchant\'s loss to fees when converting litecoin to local currency, or to encourage customer to use litecoin for purchases (by setting multiplier to < 1.00 values).', 'woocommerce' ),
 								'default' => '1.00',
 							),
 				'description' => array(
@@ -341,9 +341,9 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 /*
 ///!!!
 									'<table>' .
-									'	<tr><td colspan="2">' . __('Please send your bitcoin payment as follows:', 'woocommerce' ) . '</td></tr>' .
-									'	<tr><td>Amount (฿): </td><td><div style="border:1px solid #CCC;padding:2px 6px;margin:2px;background-color:#FEFEF0;border-radius:4px;color:#CC0000;">{{{BITCOINS_AMOUNT}}}</div></td></tr>' .
-									'	<tr><td>Address: </td><td><div style="border:1px solid #CCC;padding:2px 6px;margin:2px;background-color:#FEFEF0;border-radius:4px;color:blue;">{{{BITCOINS_ADDRESS}}}</div></td></tr>' .
+									'	<tr><td colspan="2">' . __('Please send your litecoin payment as follows:', 'woocommerce' ) . '</td></tr>' .
+									'	<tr><td>Amount (฿): </td><td><div style="border:1px solid #CCC;padding:2px 6px;margin:2px;background-color:#FEFEF0;border-radius:4px;color:#CC0000;">{{{LITECOINS_AMOUNT}}}</div></td></tr>' .
+									'	<tr><td>Address: </td><td><div style="border:1px solid #CCC;padding:2px 6px;margin:2px;background-color:#FEFEF0;border-radius:4px;color:blue;">{{{LITECOINS_ADDRESS}}}</div></td></tr>' .
 									'</table>' .
 									__('Please note:', 'woocommerce' ) .
 									'<ol>' .
@@ -369,13 +369,13 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 			// After defining the options, we need to display them too; thats where this next function comes into play:
 	    	?>
-	    	<h3><?php _e('Bitcoin Payment', 'woocommerce'); ?></h3>
+	    	<h3><?php _e('Litecoin Payment', 'woocommerce'); ?></h3>
 	    	<p>
-	    		<?php _e('Allows bitcoin payments. <a href="https://en.bitcoin.it/wiki/Main_Page" target="_blank">Bitcoins</a> are peer-to-peer, decentralized digital currency that enables instant payments from anyone to anyone, anywhere in the world',
+	    		<?php _e('Allows litecoin payments. <a href="https://en.litecoin.it/wiki/Main_Page" target="_blank">Litecoin</a> are peer-to-peer, decentralized digital currency that enables instant payments from anyone to anyone, anywhere in the world',
 	    				'woocommerce'); ?>
 	    	</p>
 	    	<?php
-	    		echo $store_valid ? ('<p style="border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#004400;background-color:#CCFFCC;">' . __('Bitcoin payment gateway is operational','woocommerce') . '</p>') : ('<p style="border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#EE0000;background-color:#FFFFAA;">' . __('Bitcoin payment gateway is not operational: ','woocommerce') . $validation_msg . '</p>');
+	    		echo $store_valid ? ('<p style="border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#004400;background-color:#CCFFCC;">' . __('Litecoin payment gateway is operational','woocommerce') . '</p>') : ('<p style="border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#EE0000;background-color:#FFFFAA;">' . __('Litecoin payment gateway is not operational: ','woocommerce') . $validation_msg . '</p>');
 	    	?>
 	    	<table class="form-table">
 	    	<?php
@@ -400,12 +400,12 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	  		if (!isset($bwwc_settings['gateway_settings']) || !is_array($bwwc_settings['gateway_settings']))
 	  			$bwwc_settings['gateway_settings'] = array();
 
-	    	$prefix        = 'woocommerce_bitcoin_';
+	    	$prefix        = 'woocommerce_litecoin_';
 	    	$prefix_length = strlen($prefix);
 
 	    	foreach ($_POST as $varname => $varvalue)
 	    	{
-	    		if (strpos($varname, 'woocommerce_bitcoin_') === 0)
+	    		if (strpos($varname, 'woocommerce_litecoin_') === 0)
 	    		{
 	    			$trimmed_varname = substr($varname, $prefix_length);
 	    			if ($trimmed_varname != 'description' && $trimmed_varname != 'instructions')
@@ -432,84 +432,84 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 			$order = new WC_Order ($order_id);
 
 			//-----------------------------------
-			// Save bitcoin payment info together with the order.
+			// Save litecoin payment info together with the order.
 			// Note: this code must be on top here, as other filters will be called from here and will use these values ...
 			//
-			// Calculate realtime bitcoin price (if exchange is necessary)
+			// Calculate realtime litecoin price (if exchange is necessary)
 
-			$exchange_rate = BWWC__get_exchange_rate_per_bitcoin (get_woocommerce_currency(), $this->exchange_rate_type);
+			$exchange_rate = BWWC__get_exchange_rate_per_litecoin (get_woocommerce_currency(), $this->exchange_rate_type);
 			if (!$exchange_rate)
 			{
-				$msg = 'ERROR: Cannot determine Bitcoin exchange rate. Possible issues: store server does not allow outgoing connections, exchange rate servers are blocking incoming connections or down. ' .
-					   'You may avoid that by setting store currency directly to Bitcoin(BTC)';
+				$msg = 'ERROR: Cannot determine Litecoin exchange rate. Possible issues: store server does not allow outgoing connections, exchange rate servers are blocking incoming connections or down. ' .
+					   'You may avoid that by setting store currency directly to Litecoin(BTC)';
       			BWWC__log_event (__FILE__, __LINE__, $msg);
       			exit ('<h2 style="color:red;">' . $msg . '</h2>');
 			}
 
-			$order_total_in_btc   = ($order->get_total() / $exchange_rate);
+			$order_total_in_ltc   = ($order->get_total() / $exchange_rate);
 			if (get_woocommerce_currency() != 'BTC')
-				// Apply exchange rate multiplier only for stores with non-bitcoin default currency.
-				$order_total_in_btc = $order_total_in_btc * $this->exchange_multiplier;
+				// Apply exchange rate multiplier only for stores with non-litecoin default currency.
+				$order_total_in_ltc = $order_total_in_ltc * $this->exchange_multiplier;
 
-			$order_total_in_btc   = sprintf ("%.8f", $order_total_in_btc);
+			$order_total_in_ltc   = sprintf ("%.8f", $order_total_in_ltc);
 
-  		$bitcoins_address = false;
+  		$litecoins_address = false;
 
   		$order_info =
   			array (
   				'order_id'				=> $order_id,
-  				'order_total'			=> $order_total_in_btc,
+  				'order_total'			=> $order_total_in_ltc,
   				'order_datetime'  => date('Y-m-d H:i:s T'),
   				'requested_by_ip'	=> @$_SERVER['REMOTE_ADDR'],
   				);
 
   		$ret_info_array = array();
 
-			if ($this->service_provider == 'blockchain.info')
+			if ($this->service_provider == 'litecoin.org')
 			{
-				$bitcoin_addr_merchant = $this->bitcoin_addr_merchant;
+				$litecoin_addr_merchant = $this->litecoin_addr_merchant;
 				$secret_key = substr(md5(microtime()), 0, 16);	# Generate secret key to be validate upon receiving IPN callback to prevent spoofing.
-				$callback_url = trailingslashit (home_url()) . "?wc-api=BWWC_Bitcoin&secret_key={$secret_key}&bitcoinway=1&src=bcinfo&order_id={$order_id}"; // http://www.example.com/?bitcoinway=1&order_id=74&src=bcinfo
-	   		BWWC__log_event (__FILE__, __LINE__, "Calling BWWC__generate_temporary_bitcoin_address__blockchain_info(). Payments to be forwarded to: '{$bitcoin_addr_merchant}' with callback URL: '{$callback_url}' ...");
+				$callback_url = trailingslashit (home_url()) . "?wc-api=BWWC_Litecoin&secret_key={$secret_key}&litecoinway=1&src=bcinfo&order_id={$order_id}"; // http://www.example.com/?litecoinway=1&order_id=74&src=bcinfo
+	   		BWWC__log_event (__FILE__, __LINE__, "Calling BWWC__generate_temporary_litecoin_address__litecoin_info(). Payments to be forwarded to: '{$litecoin_addr_merchant}' with callback URL: '{$callback_url}' ...");
 
-	   			// This function generates temporary bitcoin address and schedules IPN callback at the same
-				$ret_info_array = BWWC__generate_temporary_bitcoin_address__blockchain_info ($bitcoin_addr_merchant, $callback_url);
+	   			// This function generates temporary litecoin address and schedules IPN callback at the same
+				$ret_info_array = BWWC__generate_temporary_litecoin_address__litecoin_info ($litecoin_addr_merchant, $callback_url);
 	
 				/*
             $ret_info_array = array (
                'result'                      => 'success', // OR 'error'
                'message'										 => '...',
                'host_reply_raw'              => '......',
-               'generated_bitcoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
+               'generated_litecoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
                );
 				*/
-				$bitcoins_address = @$ret_info_array['generated_bitcoin_address'];
+				$litecoins_address = @$ret_info_array['generated_litecoin_address'];
 			}
 			else if ($this->service_provider == 'electrum-wallet')
 			{
-				// Generate bitcoin address for electrum wallet provider.
+				// Generate litecoin address for electrum wallet provider.
 				/*
             $ret_info_array = array (
                'result'                      => 'success', // OR 'error'
                'message'										 => '...',
                'host_reply_raw'              => '......',
-               'generated_bitcoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
+               'generated_litecoin_address'   => '1H9uAP3x439YvQDoKNGgSYCg3FmrYRzpD2', // or false
                );
 				*/
-				$ret_info_array = BWWC__get_bitcoin_address_for_payment__electrum ($this->electrum_master_public_key, $order_info);
-				$bitcoins_address = @$ret_info_array['generated_bitcoin_address'];
+				$ret_info_array = BWWC__get_litecoin_address_for_payment__electrum ($this->electrum_master_public_key, $order_info);
+				$litecoins_address = @$ret_info_array['generated_litecoin_address'];
 			}
 
-			if (!$bitcoins_address)
+			if (!$litecoins_address)
 			{
-				$msg = "ERROR: cannot generate bitcoin address for the order: '" . @$ret_info_array['message'] . "'";
+				$msg = "ERROR: cannot generate litecoin address for the order: '" . @$ret_info_array['message'] . "'";
       			BWWC__log_event (__FILE__, __LINE__, $msg);
       			exit ('<h2 style="color:red;">' . $msg . '</h2>');
 			}
 
-   		BWWC__log_event (__FILE__, __LINE__, "     Generated unique bitcoin address: '{$bitcoins_address}' for order_id " . $order_id);
+   		BWWC__log_event (__FILE__, __LINE__, "     Generated unique litecoin address: '{$litecoins_address}' for order_id " . $order_id);
 
-			if ($this->service_provider == 'blockchain.info')
+			if ($this->service_provider == 'litecoin.org')
 			{
 	     	update_post_meta (
 	     		$order_id, 			// post id ($order_id)
@@ -520,22 +520,22 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
      	update_post_meta (
      		$order_id, 			// post id ($order_id)
-     		'order_total_in_btc', 	// meta key
-     		$order_total_in_btc 	// meta value. If array - will be auto-serialized
+     		'order_total_in_ltc', 	// meta key
+     		$order_total_in_ltc 	// meta value. If array - will be auto-serialized
      		);
      	update_post_meta (
      		$order_id, 			// post id ($order_id)
-     		'bitcoins_address',	// meta key
-     		$bitcoins_address 	// meta value. If array - will be auto-serialized
+     		'litecoins_address',	// meta key
+     		$litecoins_address 	// meta value. If array - will be auto-serialized
      		);
      	update_post_meta (
      		$order_id, 			// post id ($order_id)
-     		'bitcoins_paid_total',	// meta key
+     		'litecoins_paid_total',	// meta key
      		"0" 	// meta value. If array - will be auto-serialized
      		);
      	update_post_meta (
      		$order_id, 			// post id ($order_id)
-     		'bitcoins_refunded',	// meta key
+     		'litecoins_refunded',	// meta key
      		"0" 	// meta value. If array - will be auto-serialized
      		);
      	update_post_meta (
@@ -552,16 +552,16 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
       		///BWWC__log_event (__FILE__, __LINE__, "process_payment() called for order id = $order_id");
 
-			// The bitcoin gateway does not take payment immediately, but it does need to change the orders status to on-hold
-			// (so the store owner knows that bitcoin payment is pending).
+			// The litecoin gateway does not take payment immediately, but it does need to change the orders status to on-hold
+			// (so the store owner knows that litecoin payment is pending).
 			// We also need to tell WooCommerce that it needs to redirect to the thankyou page – this is done with the returned array
 			// and the result being a success.
 			//
 			global $woocommerce;
 
 			//	Updating the order status:
-			// Mark as on-hold (we're awaiting for bitcoins payment to arrive)
-			$order->update_status('on-hold', __('Awaiting bitcoin payment to arrive', 'woocommerce'));
+			// Mark as on-hold (we're awaiting for litecoins payment to arrive)
+			$order->update_status('on-hold', __('Awaiting litecoin payment to arrive', 'woocommerce'));
 
 			// Reduce stock levels
 			$order->reduce_order_stock();
@@ -597,14 +597,14 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 			$order = new WC_Order($order_id);
 
 			// Assemble detailed instructions.
-			$order_total_in_btc   = get_post_meta($order->id, 'order_total_in_btc',   true); // set single to true to receive properly unserialized array
-			$bitcoins_address = get_post_meta($order->id, 'bitcoins_address', true); // set single to true to receive properly unserialized array
+			$order_total_in_ltc   = get_post_meta($order->id, 'order_total_in_ltc',   true); // set single to true to receive properly unserialized array
+			$litecoins_address = get_post_meta($order->id, 'litecoins_address', true); // set single to true to receive properly unserialized array
 
-      		///BWWC__log_event (__FILE__, __LINE__, "BWWC__thankyou_page() called for order id: {$order_id}. Bitcoin address: $bitcoins_address ({$order_total_in_btc})");
+      		///BWWC__log_event (__FILE__, __LINE__, "BWWC__thankyou_page() called for order id: {$order_id}. Litecoin address: $litecoins_address ({$order_total_in_ltc})");
 
 			$instructions = $this->instructions;
-			$instructions = str_replace ('{{{BITCOINS_AMOUNT}}}',  $order_total_in_btc, $instructions);
-			$instructions = str_replace ('{{{BITCOINS_ADDRESS}}}', $bitcoins_address, 	$instructions);
+			$instructions = str_replace ('{{{LITECOINS_AMOUNT}}}',  $order_total_in_ltc, $instructions);
+			$instructions = str_replace ('{{{LITECOINS_ADDRESS}}}', $litecoins_address, 	$instructions);
 			$instructions =
 				str_replace (
 					'{{{EXTRA_INSTRUCTIONS}}}',
@@ -612,7 +612,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 					$this->instructions_multi_payment_str,
 					$instructions
 					);
-            $order->add_order_note( __("Order instructions: price=&#3647;{$order_total_in_btc}, incoming account:{$bitcoins_address}", 'woocommerce'));
+            $order->add_order_note( __("Order instructions: price=&#3647;{$order_total_in_ltc}, incoming account:{$litecoins_address}", 'woocommerce'));
 
 	        echo wpautop (wptexturize ($instructions));
 		}
@@ -631,17 +631,17 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 		{
 	    	if ($sent_to_admin) return;
 	    	if ($order->status !== 'on-hold') return;
-	    	if ($order->payment_method !== 'bitcoin') return;
+	    	if ($order->payment_method !== 'litecoin') return;
 
 	    	// Assemble payment instructions for email
-			$order_total_in_btc   = get_post_meta($order->id, 'order_total_in_btc',   true); // set single to true to receive properly unserialized array
-			$bitcoins_address = get_post_meta($order->id, 'bitcoins_address', true); // set single to true to receive properly unserialized array
+			$order_total_in_ltc   = get_post_meta($order->id, 'order_total_in_ltc',   true); // set single to true to receive properly unserialized array
+			$litecoins_address = get_post_meta($order->id, 'litecoins_address', true); // set single to true to receive properly unserialized array
 
-      		///BWWC__log_event (__FILE__, __LINE__, "BWWC__email_instructions() called for order id={$order->id}. Bitcoin address: $bitcoins_address ({$order_total_in_btc})");
+      		///BWWC__log_event (__FILE__, __LINE__, "BWWC__email_instructions() called for order id={$order->id}. Litecoin address: $litecoins_address ({$order_total_in_ltc})");
 
 			$instructions = $this->instructions;
-			$instructions = str_replace ('{{{BITCOINS_AMOUNT}}}',  $order_total_in_btc, 	$instructions);
-			$instructions = str_replace ('{{{BITCOINS_ADDRESS}}}', $bitcoins_address, 	$instructions);
+			$instructions = str_replace ('{{{LITECOINS_AMOUNT}}}',  $order_total_in_ltc, 	$instructions);
+			$instructions = str_replace ('{{{LITECOINS_ADDRESS}}}', $litecoins_address, 	$instructions);
 			$instructions =
 				str_replace (
 					'{{{EXTRA_INSTRUCTIONS}}}',
@@ -656,17 +656,17 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 		//-------------------------------------------------------------------
 		/**
-		 * Check for Bitcoin-related IPN callabck
+		 * Check for Litecoin-related IPN callabck
 		 *
 		 * @access public
 		 * @return void
 		 */
-		function BWWC__maybe_bitcoin_ipn_callback ()
+		function BWWC__maybe_litecoin_ipn_callback ()
 		{
-			// If example.com/?bitcoinway=1 is present - it is callback URL.
-			if (isset($_REQUEST['bitcoinway']) && $_REQUEST['bitcoinway'] == '1')
+			// If example.com/?litecoinway=1 is present - it is callback URL.
+			if (isset($_REQUEST['litecoinway']) && $_REQUEST['litecoinway'] == '1')
 			{
-     		BWWC__log_event (__FILE__, __LINE__, "BWWC__maybe_bitcoin_ipn_callback () called and 'bitcoinway=1' detected. REQUEST  =  " . serialize(@$_REQUEST));
+     		BWWC__log_event (__FILE__, __LINE__, "BWWC__maybe_litecoin_ipn_callback () called and 'litecoinway=1' detected. REQUEST  =  " . serialize(@$_REQUEST));
 
 				if (@$_GET['src'] != 'bcinfo')
 				{
@@ -675,14 +675,14 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 					exit();
 				}
 
-				// Processing IPN callback from blockchain.info ('bcinfo')
+				// Processing IPN callback from litecoin.org ('bcinfo')
 
 
 				$order_id = @$_GET['order_id'];
 
 				$secret_key = get_post_meta($order_id, 'secret_key', true);
 				$secret_key_sent = @$_GET['secret_key'];
-				// Check the Request secret_key matches the original one (blockchain.info sends all params back)
+				// Check the Request secret_key matches the original one (litecoin.org sends all params back)
 				if ($secret_key_sent != $secret_key)
 				{
      			BWWC__log_event (__FILE__, __LINE__, "Warning: secret_key does not match! secret_key sent: '{$secret_key_sent}'. Expected: '{$secret_key}'. Processing aborted.");
@@ -697,7 +697,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 				{
 
 					// The value of the payment received in satoshi (not including fees). Divide by 100000000 to get the value in BTC.
-					$value_in_btc 		= @$_GET['value'] / 100000000;
+					$value_in_ltc 		= @$_GET['value'] / 100000000;
 					$txn_hash 			= @$_GET['transaction_hash'];
 					$txn_confirmations 	= @$_GET['confirmations'];
 
@@ -706,7 +706,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 					$incoming_payments = get_post_meta($order_id, '_incoming_payments', true);
 					$incoming_payments[$txn_hash] =
 						array (
-							'txn_value' 		=> $value_in_btc,
+							'txn_value' 		=> $value_in_ltc,
 							'dest_address' 		=> @$_GET['address'],
 							'confirmations' 	=> $txn_confirmations,
 							'datetime'			=> date("Y-m-d, G:i:s T"),
@@ -721,17 +721,17 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 					foreach ($incoming_payments as $k => $txn_data)
 						$paid_total_so_far += $txn_data['txn_value'];
 
-					update_post_meta ($order_id, 'bitcoins_paid_total', $paid_total_so_far);
+					update_post_meta ($order_id, 'litecoins_paid_total', $paid_total_so_far);
 					//---------------------------
 
-					$order_total_in_btc = get_post_meta($order_id, 'order_total_in_btc', true);
-					if ($paid_total_so_far >= $order_total_in_btc)
+					$order_total_in_ltc = get_post_meta($order_id, 'order_total_in_ltc', true);
+					if ($paid_total_so_far >= $order_total_in_ltc)
 					{
 						BWWC__process_payment_completed_for_order ($order_id, false);
 					}
 					else
 					{
-     				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment received (for BTC {$value_in_btc}), but not enough yet to cover the required total. Will be waiting for more. Bitcoins: now/total received/needed = {$value_in_btc}/{$paid_total_so_far}/{$order_total_in_btc}");
+     				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment received (for BTC {$value_in_ltc}), but not enough yet to cover the required total. Will be waiting for more. Litecoins: now/total received/needed = {$value_in_ltc}/{$paid_total_so_far}/{$order_total_in_ltc}");
 					}
 
 			    // Reply '*ok*' so no more notifications are sent
@@ -741,7 +741,7 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 				{
 					// Number of confirmations are not there yet... Skip it this time ...
 			    // Don't print *ok* so the notification resent again on next confirmation
-   				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment notification received (for BTC {$value_in_btc}), but number of confirmations is not enough yet. Confirmations received/required: {$confirmations}/{$this->confirmations}");
+   				BWWC__log_event (__FILE__, __LINE__, "NOTE: Payment notification received (for BTC {$value_in_ltc}), but number of confirmations is not enough yet. Confirmations received/required: {$confirmations}/{$this->confirmations}");
 			    exit();
 				}
 			}
@@ -753,14 +753,14 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 
 	//-----------------------------------------------------------------------
 	// Hook into WooCommerce - add necessary hooks and filters
-	add_filter ('woocommerce_payment_gateways', 	'BWWC__add_bitcoin_gateway' );
+	add_filter ('woocommerce_payment_gateways', 	'BWWC__add_litecoin_gateway' );
 
 	// Disable unnecessary billing fields.
 	/// Note: it affects whole store.
 	/// add_filter ('woocommerce_checkout_fields' , 	'BWWC__woocommerce_checkout_fields' );
 
-	add_filter ('woocommerce_currencies', 			'BWWC__add_btc_currency');
-	add_filter ('woocommerce_currency_symbol', 		'BWWC__add_btc_currency_symbol', 10, 2);
+	add_filter ('woocommerce_currencies', 			'BWWC__add_ltc_currency');
+	add_filter ('woocommerce_currency_symbol', 		'BWWC__add_ltc_currency_symbol', 10, 2);
 
 	// Change [Order] button text on checkout screen.
     /// Note: this will affect all payment methods.
@@ -776,9 +776,9 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	 * @package
 	 * @return array
 	 */
-	function BWWC__add_bitcoin_gateway( $methods )
+	function BWWC__add_litecoin_gateway( $methods )
 	{
-		$methods[] = 'BWWC_Bitcoin';
+		$methods[] = 'BWWC_Litecoin';
 		return $methods;
 	}
 	//=======================================================================
@@ -803,15 +803,15 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 	//=======================================================================
 
 	//=======================================================================
-	function BWWC__add_btc_currency($currencies)
+	function BWWC__add_ltc_currency($currencies)
 	{
-	     $currencies['BTC'] = __( 'Bitcoin (฿)', 'woocommerce' );
+	     $currencies['BTC'] = __( 'Litecoin (฿)', 'woocommerce' );
 	     return $currencies;
 	}
 	//=======================================================================
 
 	//=======================================================================
-	function BWWC__add_btc_currency_symbol($currency_symbol, $currency)
+	function BWWC__add_ltc_currency_symbol($currency_symbol, $currency)
 	{
 		switch( $currency )
 		{
@@ -831,11 +831,11 @@ function BWWC__plugins_loaded__load_bitcoin_gateway ()
 //###########################################################################
 
 //===========================================================================
-function BWWC__process_payment_completed_for_order ($order_id, $bitcoins_paid=false)
+function BWWC__process_payment_completed_for_order ($order_id, $litecoins_paid=false)
 {
 
-	if ($bitcoins_paid)
-		update_post_meta ($order_id, 'bitcoins_paid_total', $bitcoins_paid);
+	if ($litecoins_paid)
+		update_post_meta ($order_id, 'litecoins_paid_total', $litecoins_paid);
 
 	// Payment completed
 	// Make sure this logic is done only once, in case customer keep sending payments :)
