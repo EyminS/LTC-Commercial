@@ -224,7 +224,7 @@ function BWWC__plugins_loaded__load_litecoin_gateway ()
     </td>
     <td class="bpit-td-value bpit-td-value-qr">
       <div style="border:1px solid #FCCA09;padding:5px;margin:2px;background-color:#FCF8E3;border-radius:4px;">
-        <a href="litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}"><img src="https://litecoin.org/qr?data=litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}&size=180" style="vertical-align:middle;border:1px solid #888;" /></a>
+        <a href="litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}"><img src="https://blockchain.info/qr?data=litecoin://{{{LITECOINS_ADDRESS}}}?amount={{{LITECOINS_AMOUNT}}}&size=180" style="vertical-align:middle;border:1px solid #888;" /></a>
       </div>
     </td>
   </tr>
